@@ -33,20 +33,15 @@ public class PhoneBookRestController {
 
     @GetMapping("/{telNum}")
     public String getAnswer(@PathVariable @Pattern(regexp = "^7\\d{10}$", message = "Wrong number format") String telNum) {
-        List<PhoneBook> result = (List<PhoneBook>) phoneBookService.findByNumber(telNum);
+        List<PhoneBook> result = phoneBookService.findByNumber(telNum);
 
         String decision;
         if (result.isEmpty()) {
-            decision = CoreNotificationMessages.ACCEPT;
-            logEvent(telNum, decision);
-            return decision;
-        }
-
-        int count = Math.toIntExact(result.stream().map(PhoneBook::getTelNum).filter(telNum::equals).count());
-        if (count == 1)
-            decision = CoreNotificationMessages.CHALLENGE;
+            decision = CoreNotificationMessages.ACCEPT.getDecision();
+        } else if (result.size() == 1)
+            decision = CoreNotificationMessages.CHALLENGE.getDecision();
         else
-            decision = CoreNotificationMessages.DECLINE;
+            decision = CoreNotificationMessages.DECLINE.getDecision();
 
         logEvent(telNum, decision);
         return decision;
@@ -54,7 +49,6 @@ public class PhoneBookRestController {
 
     private void logEvent(String telNum, String decision) {
         Event event = new Event(telNum, ZonedDateTime.now(ZoneId.of("Europe/Moscow")), decision);
-        event.setId(0);
         eventLogService.save(event);
     }
 

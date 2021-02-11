@@ -5,5 +5,5 @@ import com.example.rest.entity.PhoneBook;
 import java.util.List;
 
 public interface PhoneBookService {
-    List<? extends PhoneBook> findByNumber(String number);
+    List<PhoneBook> findByNumber(String number);
 }

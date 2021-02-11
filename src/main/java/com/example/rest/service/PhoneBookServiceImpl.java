@@ -11,7 +11,7 @@ import java.util.List;
 @Service
 public class PhoneBookServiceImpl implements PhoneBookService {
 
-    private PhoneBookDAO phoneBookDAO;
+    private final PhoneBookDAO phoneBookDAO;
 
     @Autowired
     public PhoneBookServiceImpl(PhoneBookDAO phoneBookDAO) {

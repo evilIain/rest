@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class EventLogServiceImpl implements EventLogService {
 
-    private EventLogDAO eventLogDAO;
+    private final EventLogDAO eventLogDAO;
 
     @Autowired
     public EventLogServiceImpl(EventLogDAO eventLogDAO) {
@@ -20,10 +20,5 @@ public class EventLogServiceImpl implements EventLogService {
     @Transactional
     public void save(Event event) {
         eventLogDAO.save(event);
-    }
-
-    @Override
-    public Event findLastByTelNumber(String telNum) {
-        return eventLogDAO.findLastByTelNumber(telNum);
     }
 }

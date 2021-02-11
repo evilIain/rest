@@ -12,8 +12,14 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,7 +36,7 @@ public class PhoneBookRestControllerTests {
     private MockMvc mvc;
 
     @Autowired
-    private EventLogDAO eventLogDAO;
+    private EntityManager entityManager;
 
     @Test
     public void declineTest() throws Exception {
@@ -41,9 +47,9 @@ public class PhoneBookRestControllerTests {
 
 
         String content = result.getResponse().getContentAsString();
-        assertEquals(CoreNotificationMessages.DECLINE, content);
-        Event event = eventLogDAO.findLastByTelNumber(number);
-        assertEquals(CoreNotificationMessages.DECLINE, event.getDecision());
+        assertEquals(CoreNotificationMessages.DECLINE.getDecision(), content);
+        List<Event> eventList = findByTelNumber(number);
+        assertEquals(CoreNotificationMessages.DECLINE.getDecision(), eventList.get(0).getDecision());
     }
 
     @Test
@@ -55,9 +61,9 @@ public class PhoneBookRestControllerTests {
 
 
         String content = result.getResponse().getContentAsString();
-        assertEquals(CoreNotificationMessages.ACCEPT, content);
-        Event event = eventLogDAO.findLastByTelNumber(number);
-        assertEquals(CoreNotificationMessages.ACCEPT, event.getDecision());
+        assertEquals(CoreNotificationMessages.ACCEPT.getDecision(), content);
+        List<Event> eventList = findByTelNumber(number);
+        assertEquals(CoreNotificationMessages.ACCEPT.getDecision(), eventList.get(0).getDecision());
     }
 
     @Test
@@ -69,8 +75,23 @@ public class PhoneBookRestControllerTests {
 
 
         String content = result.getResponse().getContentAsString();
-        assertEquals(CoreNotificationMessages.CHALLENGE, content);
-        Event event = eventLogDAO.findLastByTelNumber(number);
-        assertEquals(CoreNotificationMessages.CHALLENGE, event.getDecision());
+        assertEquals(CoreNotificationMessages.CHALLENGE.getDecision(), content);
+        List<Event> eventList = findByTelNumber(number);
+        assertEquals(CoreNotificationMessages.CHALLENGE.getDecision(), eventList.get(0).getDecision());
+    }
+
+    @Test
+    public void failTest() throws Exception {
+        String number = "98asd";
+        mvc.perform(get("/api/" + number))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Transactional
+    List<Event> findByTelNumber(String telNum) {
+        Query query = entityManager.createQuery("from Event where tel_num=:telNum ORDER by event_date DESC");
+        query.setParameter("telNum", telNum);
+
+        return (List<Event>) query.getResultList();
     }
 }
